@@ -3,7 +3,9 @@ import './App.css';
 import resampler from 'audio-resampler';
 import axios from 'axios';
 import wavfile from './sound/heart.wav';
-import WaveSurfer from 'wavesurfer_linear'
+import WaveSurfer from 'wavesurfer_linear';
+
+
 class App extends React.Component {
 
   componentDidMount() {
