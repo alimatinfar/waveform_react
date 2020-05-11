@@ -1,13 +1,16 @@
 import React from 'react';
 import './App.css';
-import WaveSurfer from 'wavesurfer.js';
 import resampler from 'audio-resampler';
 import axios from 'axios';
-import wavfile from './sound/heart.wav'
-
+import wavfile from './sound/heart.wav';
+import WaveSurfer from 'wavesurfer_linear'
 class App extends React.Component {
 
   componentDidMount() {
+    const newWindowObject = window;
+
+    console.log('salam', window.WaveSurfer)
+
     var buttons = {
       play: document.getElementById("btn-play"),
       pause: document.getElementById("btn-pause"),
@@ -22,46 +25,72 @@ class App extends React.Component {
 
     const exp = document.getElementById('exp')
 
-    // Create an instance of wave surfer with its configuration
-    var Spectrum = WaveSurfer.create({
-      container: '#audio-spectrum',
+    var Wavesurfer = WaveSurfer.create({
+      container: '#audio-wavesurfer',
       waveColor: '#76767b',//#76767b
       barHeight: 20,
       scrollParent: true,
       cursorColor: '#457dd3',
-      progressColor: '#457dd3'
+      interpolate: true,
+      normalize: false,
+      height: 128,
+      waveColor: "#999",
+      progressColor: "#555",
+      cursorColor: "#333",
+      cursorWidth: 1,
+      skipLength: 2,
+      minPxPerSec: 20,
+      fillParent: !0,
+      scrollParent: !1,
+      hideScrollbar: !1,
+      normalize: !1,
+      audioContext: null,
+      dragSelection: !0,
+      loopSelection: !0,
+      audioRate: 1,
+      interact: !0,
+      splitChannels: !1,
+      mediaContainer: null,
+      mediaControls: !1,
+      // renderer: "Canvas",
+      // backend: "WebAudio",
+      // mediaType: "audio",
+      waveGain: null,
+      waveHeightScale: 1,
+      autoCenter: !0
+
     });
-    console.log(Spectrum)
-    // Spectrum.constructor({
+    console.log(Wavesurfer)
+    // wavesur.constructor({
     //   hideScrollbar: false,
     // });
     // Handle Play button
     zooms.one.addEventListener("click", function () {
 
-      Spectrum.zoom(50);
-      Spectrum.setHeight(128);
+      Wavesurfer.zoom(50);
+      Wavesurfer.setHeight(128);
 
     }, false);
 
     // Handle Play button
     zooms.two.addEventListener("click", function () {
 
-      Spectrum.zoom(200);
-      Spectrum.setHeight(300);
+      Wavesurfer.zoom(200);
+      Wavesurfer.setHeight(300);
 
     }, false);
 
     // Handle Play button
     zooms.three.addEventListener("click", function () {
 
-      Spectrum.zoom(400);
-      Spectrum.setHeight(600);
+      Wavesurfer.zoom(400);
+      Wavesurfer.setHeight(600);
     }, false);
 
 
     // Handle Play button
     buttons.play.addEventListener("click", function () {
-      Spectrum.play();
+      Wavesurfer.play();
 
       // Enable/Disable respectively buttons
       buttons.stop.disabled = false;
@@ -71,7 +100,7 @@ class App extends React.Component {
 
     // Handle Pause button
     buttons.pause.addEventListener("click", function () {
-      Spectrum.pause();
+      Wavesurfer.pause();
 
       // Enable/Disable respectively buttons
       buttons.pause.disabled = true;
@@ -81,7 +110,7 @@ class App extends React.Component {
 
     // Handle Stop button
     buttons.stop.addEventListener("click", function () {
-      Spectrum.stop();
+      Wavesurfer.stop();
 
       // Enable/Disable respectively buttons
       buttons.pause.disabled = true;
@@ -91,21 +120,21 @@ class App extends React.Component {
 
 
     // Add a listener to enable the play button once it's ready
-    Spectrum.on('ready', function () {
+    Wavesurfer.on('ready', function () {
       buttons.play.disabled = false;
     });
 
     // If you want a responsive mode (so when the user resizes the window)
-    // the spectrum will be still playable
+    // the wavesurfer will be still playable
     window.addEventListener("resize", function () {
       // Get the current progress according to the cursor position
-      var currentProgress = Spectrum.getCurrentTime() / Spectrum.getDuration();
+      var currentProgress = Wavesurfer.getCurrentTime() / Wavesurfer.getDuration();
 
       // Reset graph
-      Spectrum.empty();
-      Spectrum.drawBuffer();
+      Wavesurfer.empty();
+      Wavesurfer.drawBuffer();
       // Set original position
-      Spectrum.seekTo(currentProgress);
+      Wavesurfer.seekTo(currentProgress);
 
       // Enable/Disable respectively buttons
       buttons.pause.disabled = true;
@@ -158,16 +187,16 @@ class App extends React.Component {
         // var bufferView = new Uint32Array(bufferPart);
         // var samplerate = bufferView[0];
         // console.log(samplerate)
-        Spectrum.loadBlob(blob)
-        // Spectrum.loadBlob(blob);
+        Wavesurfer.loadBlob(blob)
+        // Wavesurfer.loadBlob(blob);
       }).catch(function (error) {
         // handle error
         console.log(error);
       })
-    
-    // Spectrum.load(wavfile)
+
+    // Wavesurfer.load(wavfile)
     exp.addEventListener("click", function () {
-      var dataURL = Spectrum.exportImage('image/png', 1, 'dataURL');
+      var dataURL = Wavesurfer.exportImage('image/png', 1, 'dataURL');
       console.log(dataURL)
       document.getElementById('image').src = dataURL;
       var link = document.createElement('a');
@@ -180,13 +209,14 @@ class App extends React.Component {
 
 
 
-    // Spectrum.load('https://nabzgroup.com/api/v1/blog/s/8000')
+    // Wavesurfer.load('https://nabzgroup.com/api/v1/blog/s/8000')
   }
 
   render() {
+    
     return (
       <div id="waveform">
-        <div id="audio-spectrum"></div>
+        <div id="audio-wavesurfer"></div>
 
         <input type="button" id="btn-play" value="Play" disabled="disabled" />
         <input type="button" id="btn-pause" value="Pause" disabled="disabled" />
@@ -201,7 +231,7 @@ class App extends React.Component {
 
         <canvas id="myCanvas" width="240" height="297">
           Your browser does not support the HTML5 canvas tag.
-        </canvas>
+          </canvas>
 
         <img id="image" />
 
@@ -211,3 +241,4 @@ class App extends React.Component {
 }
 
 export default App;
+
