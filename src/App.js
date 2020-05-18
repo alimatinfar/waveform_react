@@ -1,18 +1,12 @@
 import React from 'react';
 import './App.css';
-import resampler from 'audio-resampler';
 import axios from 'axios';
-import wavfile from './sound/heart.wav';
 import WaveSurfer from 'wavesurfer_linear';
-
+import upSample from './upSample';
 
 class App extends React.Component {
 
   componentDidMount() {
-    const newWindowObject = window;
-
-    console.log('salam', window.WaveSurfer)
-
     var buttons = {
       play: document.getElementById("btn-play"),
       pause: document.getElementById("btn-pause"),
@@ -30,7 +24,7 @@ class App extends React.Component {
     var Wavesurfer = WaveSurfer.create({
       container: '#audio-wavesurfer',
       waveColor: '#76767b',//#76767b
-      barHeight: 20,
+      barHeight: 1,
       scrollParent: true,
       cursorColor: '#457dd3',
       interpolate: true,
@@ -144,27 +138,6 @@ class App extends React.Component {
       buttons.stop.disabled = false;
     }, false);
 
-
-    const b64toBlob = (b64Data, contentType = '', sliceSize = 512) => {
-      const byteCharacters = atob(b64Data);
-      const byteArrays = [];
-
-      for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-        const slice = byteCharacters.slice(offset, offset + sliceSize);
-
-        const byteNumbers = new Array(slice.length);
-        for (let i = 0; i < slice.length; i++) {
-          byteNumbers[i] = slice.charCodeAt(i);
-        }
-
-        const byteArray = new Uint8Array(byteNumbers);
-        byteArrays.push(byteArray);
-      }
-
-      const blob = new Blob(byteArrays, { type: contentType });
-      return blob;
-    }
-
     axios.get('https://nabzgroup.com/api/v1/blog/s/8000', {
       responseType: 'arraybuffer',
       headers: {
@@ -173,30 +146,41 @@ class App extends React.Component {
     })
       .then(function (response) {
 
-        console.log(response)
+        console.log(response.data)
 
-        var codes = new Uint8Array(response.data);
+        var codes = new Int16Array(response.data);
 
-        var bin = String.fromCharCode.apply(null, codes);
-        // console.log(bin)
-        var b64 = btoa(bin);
+        function convert(n) {
+          var v = n < 0 ? n * 32768 : n * 32767;       // convert in range [-32768, 32767]
+          return parseInt(v); // clamp
+        }
 
-        const blob = b64toBlob(b64, "audio/x-wav", 256)
-        // const buff = blob.arrayBuffer()
-        // const sli = blob.slice(1, 4, "audio/x-wav");
+        let wavheader = codes.slice(0, 22);
+        let orginalData = codes.slice(22)
+        let upSampledData = upSample(orginalData, 2)
 
-        // var bufferPart = response.data.slice(40, 48);
-        // var bufferView = new Uint32Array(bufferPart);
-        // var samplerate = bufferView[0];
-        // console.log(samplerate)
-        Wavesurfer.loadBlob(blob)
-        // Wavesurfer.loadBlob(blob);
+        let newUpSample = upSampledData.map(convert)
+        let orginalUpSampledData = new Int16Array(newUpSample)
+        let upSampled = new Int16Array([...wavheader, ...orginalUpSampledData])
+        let upSampledBuffer = upSampled.buffer
+
+        //  get data into txt file
+        // let str = ''
+        // for (let i of orginalUpSampledData) {
+        //   str += i + '\n';
+        // }
+        // let a = document.createElement('a');
+        // a.href = "data:application/octet-stream," + encodeURIComponent(str);
+        // a.download = 'abc.txt';
+        // a.click();
+
+        Wavesurfer.loadArrayBuffer(upSampledBuffer)
       }).catch(function (error) {
         // handle error
         console.log(error);
       })
 
-    // Wavesurfer.load(wavfile)
+    //exportImage from waveform  
     exp.addEventListener("click", function () {
       var dataURL = Wavesurfer.exportImage('image/png', 1, 'dataURL');
       console.log(dataURL)
@@ -208,14 +192,10 @@ class App extends React.Component {
       link.click();
       document.body.removeChild(link);
     }, false);
-
-
-
-    // Wavesurfer.load('https://nabzgroup.com/api/v1/blog/s/8000')
   }
 
   render() {
-    
+
     return (
       <div id="waveform">
         <div id="audio-wavesurfer"></div>
